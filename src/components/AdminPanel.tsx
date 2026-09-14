@@ -87,7 +87,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [dragOverStage, setDragOverStage] = useState<LeadStage | null>(null);
 
   // Code preview tabs for Docker & PostgreSQL
-  const [codeTab, setCodeTab] = useState<'docker' | 'schema' | 'compose'>('docker');
+  const [codeTab, setCodeTab] = useState<'docker' | 'schema' | 'seed' | 'compose'>('docker');
   const [copiedCode, setCopiedCode] = useState(false);
 
   // Load analytics & leads
@@ -1168,7 +1168,15 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                           codeTab === 'schema' ? 'bg-red-600 text-white' : 'text-neutral-400 hover:text-white'
                         }`}
                       >
-                        schema.sql (PostgreSQL DDL)
+                        schema.sql (Estrutura DDL)
+                      </button>
+                      <button
+                        onClick={() => setCodeTab('seed')}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                          codeTab === 'seed' ? 'bg-red-600 text-white' : 'text-neutral-400 hover:text-white'
+                        }`}
+                      >
+                        seed_demo.sql (Dados Fake)
                       </button>
                     </div>
                   </div>
@@ -1180,14 +1188,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 FROM node:22-alpine AS builder
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci
+RUN npm install
 COPY . .
 RUN npm run build
 FROM node:22-alpine AS runner
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci --omit=dev
+RUN npm install --omit=dev
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/schema.sql ./schema.sql
+COPY --from=builder /app/seed_demo.sql ./seed_demo.sql
 EXPOSE 3000
 CMD ["node", "dist/server.cjs"]` : codeTab === 'compose' ?
 `version: '3.8'
@@ -1195,6 +1205,7 @@ services:
   postgres:
     image: postgres:16-alpine
     container_name: rwimoveis_postgres
+    restart: always
     environment:
       POSTGRES_DB: rwimoveis
       POSTGRES_USER: rwimoveis_user
@@ -1204,15 +1215,28 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./schema.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rwimoveis_user -d rwimoveis"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
   app:
     build: .
     ports:
       - "3000:3000"
+    environment:
+      DATABASE_URL: \${DATABASE_URL:-postgres://rwimoveis_user:rwimoveis_secret_password@postgres:5432/rwimoveis}
+      ADMIN_USER: \${ADMIN_USER:-admin}
+      ADMIN_PASSWORD: \${ADMIN_PASSWORD:-121212}
     depends_on:
-      - postgres` :
-`CREATE TABLE properties (...);
+      postgres:
+        condition: service_healthy
+        required: false` : codeTab === 'schema' ?
+`CREATE TABLE admin_users (id, username, password_hash, name, role...);
+CREATE TABLE properties (...);
 CREATE TABLE leads (...);
-CREATE TABLE visits (...);`;
+CREATE TABLE visits (...);` :
+`INSERT INTO properties (...) VALUES ('prop-1', ...);`;
                       copySnippet(code);
                     }}
                     className="flex items-center gap-1 text-xs text-neutral-300 hover:text-white bg-neutral-800 px-3 py-1.5 rounded-lg"
@@ -1230,7 +1254,7 @@ WORKDIR /app
 
 # Copy package descriptors & install
 COPY package*.json ./
-RUN npm ci
+RUN npm install
 
 # Copy application source code
 COPY . .
@@ -1245,10 +1269,11 @@ ENV NODE_ENV=production
 ENV PORT=3000
 
 COPY package*.json ./
-RUN npm ci --omit=dev
+RUN npm install --omit=dev
 
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/schema.sql ./schema.sql
+COPY --from=builder /app/seed_demo.sql ./seed_demo.sql
 
 EXPOSE 3000
 CMD ["node", "dist/server.cjs"]`}</pre>
@@ -1258,7 +1283,7 @@ CMD ["node", "dist/server.cjs"]`}</pre>
                     <pre>{`version: '3.8'
 
 services:
-  # Serviço de Banco de Dados PostgreSQL
+  # 1. Serviço Postgres Embutido (Padrão)
   postgres:
     image: postgres:16-alpine
     container_name: rwimoveis_postgres
@@ -1278,9 +1303,11 @@ services:
       timeout: 5s
       retries: 5
 
-  # Serviço da Aplicação RWimóveis Node.js
+  # 2. Aplicação RWimóveis Node.js (Suporta Postgres Embutido ou Externo)
   app:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: rwimoveis_app
     restart: always
     ports:
@@ -1288,20 +1315,35 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3000
-      DATABASE_URL: postgres://rwimoveis_user:rwimoveis_secret_password@postgres:5432/rwimoveis
-      ADMIN_USER: admin
-      ADMIN_PASSWORD: "121212"
+      # Sobrescreva DATABASE_URL no .env caso use banco externo!
+      DATABASE_URL: \${DATABASE_URL:-postgres://rwimoveis_user:rwimoveis_secret_password@postgres:5432/rwimoveis}
+      ADMIN_USER: \${ADMIN_USER:-admin}
+      ADMIN_PASSWORD: \${ADMIN_PASSWORD:-121212}
     depends_on:
       postgres:
         condition: service_healthy
+        required: false
 
-volumes:
-  pgdata:
-    driver: local`}</pre>
+# DICA PARA POSTGRES EXTERNO:
+# docker compose run --no-deps -e DATABASE_URL="postgres://user:pass@meu-rds:5432/db" -p 3000:3000 app
+# ou defina DATABASE_URL no .env e suba apenas: docker compose up -d --no-deps app`}</pre>
                   )}
 
                   {codeTab === 'schema' && (
-                    <pre>{`-- RWimóveis PostgreSQL Schema
+                    <pre>{`-- RWimóveis PostgreSQL Schema DDL (Apenas Estrutura Limpa para Produção)
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- 1. Usuários Administrativos (Senha com bcrypt)
+CREATE TABLE IF NOT EXISTS admin_users (
+    id VARCHAR(64) PRIMARY KEY,
+    username VARCHAR(64) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    name VARCHAR(128) NOT NULL,
+    role VARCHAR(32) NOT NULL DEFAULT 'admin',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 2. Tabela de Imóveis
 CREATE TABLE IF NOT EXISTS properties (
     id VARCHAR(64) PRIMARY KEY,
     code VARCHAR(32) UNIQUE NOT NULL,
@@ -1326,31 +1368,65 @@ CREATE TABLE IF NOT EXISTS properties (
     featured BOOLEAN NOT NULL DEFAULT FALSE,
     views_count INT NOT NULL DEFAULT 0,
     status VARCHAR(32) NOT NULL DEFAULT 'Disponível',
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+-- 3. CRM Leads & Funil Kanban
 CREATE TABLE IF NOT EXISTS leads (
     id VARCHAR(64) PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL,
     phone VARCHAR(64) NOT NULL,
-    property_id VARCHAR(64) REFERENCES properties(id),
+    property_id VARCHAR(64) REFERENCES properties(id) ON DELETE SET NULL,
     stage VARCHAR(32) NOT NULL DEFAULT 'novo',
     source VARCHAR(64) NOT NULL,
     notes TEXT,
     value NUMERIC(14, 2),
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    last_contact_date TIMESTAMP WITH TIME ZONE
 );
 
+-- 4. Métricas e Visitas
 CREATE TABLE IF NOT EXISTS visits (
     id VARCHAR(64) PRIMARY KEY,
     property_id VARCHAR(64) REFERENCES properties(id) ON DELETE CASCADE,
     property_title VARCHAR(255),
     user_agent TEXT,
+    referrer TEXT,
     city VARCHAR(128),
     device VARCHAR(64),
     timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);`}</pre>
+);
+
+-- Seed de Segurança: Administrador com hash bcrypt
+INSERT INTO admin_users (id, username, password_hash, name, role)
+VALUES ('admin-1', 'admin', '$2b$10$UR6dR0Kw2VIZowl3gIdpROei3I7bzixn3Jle.O0mEnApCoph0JD.u', 'Administrador RWimóveis', 'admin')
+ON CONFLICT (username) DO NOTHING;`}</pre>
+                  )}
+
+                  {codeTab === 'seed' && (
+                    <pre>{`-- RWimóveis - seed_demo.sql (Dados de Teste com 6 Imóveis)
+-- Execute apenas se desejar popular o banco com anúncios demonstrativos:
+-- psql -U rwimoveis_user -d rwimoveis -f seed_demo.sql
+
+INSERT INTO properties (
+    id, code, title, type, purpose, price, condo_fee, iptu,
+    address, neighborhood, city, state, bedrooms, suites, bathrooms,
+    parking_spots, area, description, features, images, featured, views_count, status
+) VALUES 
+(
+    'prop-1', 'RW-101', 'Cobertura Duplex com Vista Panorâmica para a Baía do Guajará na Doca', 'Cobertura', 'Comprar',
+    2750000.00, 2600.00, 920.00, 'Avenida Visconde de Souza Franco (Doca), 1150', 'Umarizal', 'Belém', 'PA',
+    4, 4, 6, 4, 310.00,
+    'Espetacular cobertura duplex no trecho mais nobre da Doca de Souza Franco...',
+    '["Vista Eterna para a Baía do Guajará", "Piscina Privativa no Terraço", "Varanda Gourmet com Churrasqueira"]',
+    '["https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1400&q=80"]',
+    true, 412, 'Disponível'
+),
+-- [Mais 5 imóveis de exemplo no arquivo seed_demo.sql]
+ON CONFLICT (id) DO NOTHING;`}</pre>
                   )}
                 </div>
               </div>

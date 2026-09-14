@@ -1,15 +1,20 @@
 import fs from 'fs';
 import path from 'path';
-import { Property, Lead, VisitRecord, AnalyticsSummary } from '../src/types.ts';
+import bcrypt from 'bcryptjs';
+import { Property, Lead, VisitRecord, AnalyticsSummary, AdminUser } from '../src/types.ts';
 import { INITIAL_PROPERTIES, INITIAL_LEADS, INITIAL_VISITS } from '../src/db/seed-data.ts';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DATA_DIR, 'database.json');
 
+// Default bcrypt hash for '121212'
+const DEFAULT_ADMIN_PASSWORD_HASH = '$2b$10$UR6dR0Kw2VIZowl3gIdpROei3I7bzixn3Jle.O0mEnApCoph0JD.u';
+
 interface DatabaseSchema {
   properties: Property[];
   leads: Lead[];
   visits: VisitRecord[];
+  adminUsers?: AdminUser[];
   meta: {
     version: string;
     lastUpdated: string;
@@ -34,6 +39,21 @@ class RealEstateDatabase {
         const raw = fs.readFileSync(DB_FILE, 'utf-8');
         const parsed = JSON.parse(raw);
         if (parsed && Array.isArray(parsed.properties) && parsed.properties.length > 0) {
+          // Ensure adminUsers exists and has bcrypt hash
+          if (!parsed.adminUsers || !Array.isArray(parsed.adminUsers) || parsed.adminUsers.length === 0) {
+            parsed.adminUsers = [
+              {
+                id: 'admin-1',
+                username: process.env.ADMIN_USER || 'admin',
+                passwordHash: process.env.ADMIN_PASSWORD 
+                  ? bcrypt.hashSync(process.env.ADMIN_PASSWORD, 10) 
+                  : DEFAULT_ADMIN_PASSWORD_HASH,
+                name: 'Administrador RWimóveis',
+                role: 'admin',
+                createdAt: new Date().toISOString()
+              }
+            ];
+          }
           return parsed;
         }
       }
@@ -41,10 +61,25 @@ class RealEstateDatabase {
       console.warn('Could not read existing database.json, initializing fresh state:', err);
     }
 
+    const defaultAdminPass = process.env.ADMIN_PASSWORD || '121212';
+    const adminHash = defaultAdminPass === '121212' 
+      ? DEFAULT_ADMIN_PASSWORD_HASH 
+      : bcrypt.hashSync(defaultAdminPass, 10);
+
     const fresh: DatabaseSchema = {
       properties: JSON.parse(JSON.stringify(INITIAL_PROPERTIES)),
       leads: JSON.parse(JSON.stringify(INITIAL_LEADS)),
       visits: JSON.parse(JSON.stringify(INITIAL_VISITS)),
+      adminUsers: [
+        {
+          id: 'admin-1',
+          username: process.env.ADMIN_USER || 'admin',
+          passwordHash: adminHash,
+          name: 'Administrador RWimóveis',
+          role: 'admin',
+          createdAt: new Date().toISOString()
+        }
+      ],
       meta: {
         version: '1.0.0',
         lastUpdated: new Date().toISOString(),
@@ -348,12 +383,56 @@ class RealEstateDatabase {
     };
   }
 
+  // --- Authentication & Security (bcrypt) ---
+  public getAdminUser(username: string): AdminUser | undefined {
+    const users = this.data.adminUsers || [];
+    return users.find(u => u.username.toLowerCase() === username.toLowerCase());
+  }
+
+  public verifyAdminCredentials(username: string, plainPassword: string): { valid: boolean; user?: AdminUser } {
+    const user = this.getAdminUser(username);
+    if (!user) {
+      return { valid: false };
+    }
+
+    try {
+      // Secure bcrypt comparison against stored passwordHash
+      const isMatch = bcrypt.compareSync(plainPassword, user.passwordHash);
+      if (isMatch) {
+        return { valid: true, user };
+      }
+    } catch (err) {
+      console.error('Error during bcrypt password verification:', err);
+    }
+
+    return { valid: false };
+  }
+
+  public hashPassword(plainPassword: string): string {
+    return bcrypt.hashSync(plainPassword, 10);
+  }
+
   // --- Reset to seed ---
   public resetToSeed(): void {
+    const defaultAdminPass = process.env.ADMIN_PASSWORD || '121212';
+    const adminHash = defaultAdminPass === '121212' 
+      ? DEFAULT_ADMIN_PASSWORD_HASH 
+      : bcrypt.hashSync(defaultAdminPass, 10);
+
     this.data = {
       properties: JSON.parse(JSON.stringify(INITIAL_PROPERTIES)),
       leads: JSON.parse(JSON.stringify(INITIAL_LEADS)),
       visits: JSON.parse(JSON.stringify(INITIAL_VISITS)),
+      adminUsers: [
+        {
+          id: 'admin-1',
+          username: process.env.ADMIN_USER || 'admin',
+          passwordHash: adminHash,
+          name: 'Administrador RWimóveis',
+          role: 'admin',
+          createdAt: new Date().toISOString()
+        }
+      ],
       meta: {
         version: '1.0.0',
         lastUpdated: new Date().toISOString(),

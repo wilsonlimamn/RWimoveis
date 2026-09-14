@@ -17,24 +17,43 @@ async function startServer() {
     res.json({ status: 'ok', app: 'RWimóveis', timestamp: new Date().toISOString() });
   });
 
-  // Authentication: admin / 121212
+  // Authentication with bcrypt password verification
   app.post('/api/auth/login', (req: Request, res: Response) => {
-    const { username, password } = req.body;
-    if (username === 'admin' && password === '121212') {
-      return res.json({
-        success: true,
-        user: {
-          username: 'admin',
-          name: 'Administrador RWimóveis',
-          role: 'admin'
-        },
-        token: 'rw-token-admin-' + Date.now()
+    try {
+      const { username, password } = req.body;
+
+      if (!username || !password) {
+        return res.status(400).json({
+          success: false,
+          error: 'Usuário e senha são obrigatórios.'
+        });
+      }
+
+      const { valid, user } = db.verifyAdminCredentials(username, password);
+
+      if (valid && user) {
+        return res.json({
+          success: true,
+          user: {
+            username: user.username,
+            name: user.name,
+            role: user.role
+          },
+          token: 'rw-token-admin-' + Date.now()
+        });
+      }
+
+      return res.status(401).json({
+        success: false,
+        error: 'Credenciais inválidas. Verifique o usuário e a senha.'
+      });
+    } catch (err: any) {
+      console.error('Error in /api/auth/login:', err);
+      return res.status(500).json({
+        success: false,
+        error: 'Erro no servidor ao processar autenticação.'
       });
     }
-    return res.status(401).json({
-      success: false,
-      error: 'Usuário ou senha inválidos. Utilize a conta admin e senha 121212.'
-    });
   });
 
   // Properties list
@@ -271,6 +290,21 @@ async function startServer() {
       }
     } catch (err: any) {
       res.status(500).send('Erro ao ler schema.sql');
+    }
+  });
+
+  // Seed Demo file delivery
+  app.get('/api/seed_demo.sql', (req: Request, res: Response) => {
+    try {
+      const seedPath = path.join(process.cwd(), 'seed_demo.sql');
+      if (fs.existsSync(seedPath)) {
+        res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+        res.sendFile(seedPath);
+      } else {
+        res.status(404).send('seed_demo.sql não encontrado');
+      }
+    } catch (err: any) {
+      res.status(500).send('Erro ao ler seed_demo.sql');
     }
   });
 

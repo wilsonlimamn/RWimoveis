@@ -29,6 +29,7 @@ RUN npm install --omit=dev
 
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/schema.sql ./schema.sql
+COPY --from=builder /app/seed_demo.sql ./seed_demo.sql
 
 EXPOSE 3000
 

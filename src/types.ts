@@ -82,6 +82,15 @@ export interface AdminAuth {
   token?: string | null;
 }
 
+export interface AdminUser {
+  id: string;
+  username: string;
+  passwordHash: string;
+  name: string;
+  role: string;
+  createdAt: string;
+}
+
 export interface PropertyFilterState {
   purpose: PropertyPurpose | 'Todos';
   type: string;
