@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <rect width="64" height="64" rx="16" fill="#dc2626" />
+  <!-- Two Buildings Icon (Building2 style) -->
+  <g fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Main taller building -->
+    <path d="M14 50V16a2 2 0 0 1 2-2h18a2 2 0 0 1 2 2v34" />
+    <!-- Secondary attached building -->
+    <path d="M36 28h12a2 2 0 0 1 2 2v20" />
+    <!-- Base line -->
+    <path d="M10 50h44" />
+    <!-- Windows taller building -->
+    <path d="M22 22h4M22 30h4M22 38h4" />
+    <!-- Windows secondary building -->
+    <path d="M42 36h2M42 42h2" />
+  </g>
+</svg>

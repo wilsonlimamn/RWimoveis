@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, ShieldCheck, Heart, Phone, Menu, X, User } from 'lucide-react';
+import { Building2, ShieldCheck, Heart, Phone, Menu, X, User } from 'lucide-react';
 import { AdminAuth, PropertyPurpose } from '../types.ts';
 
 interface NavbarProps {
@@ -36,7 +36,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               className="flex items-center gap-2.5 group"
             >
               <div className="w-11 h-11 rounded-xl bg-red-600 flex items-center justify-center text-white shadow-md shadow-red-600/30 group-hover:scale-105 transition-transform">
-                <Home className="w-6 h-6 stroke-[2.2]" />
+                <Building2 className="w-6 h-6 stroke-[2.2]" />
               </div>
               <div className="flex flex-col">
                 <div className="flex items-center">

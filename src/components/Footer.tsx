@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, Phone, Mail, MapPin, ShieldCheck, Clock, Lock } from 'lucide-react';
+import { Building2, Phone, Mail, MapPin, ShieldCheck, Clock, Lock } from 'lucide-react';
 
 interface FooterProps {
   onOpenAdmin: () => void;
@@ -15,7 +15,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenAdmin }) => {
           <div className="space-y-4">
             <div className="flex items-center gap-2.5">
               <div className="w-10 h-10 rounded-xl bg-red-600 flex items-center justify-center text-white shadow-md shadow-red-600/30">
-                <Home className="w-5 h-5 stroke-[2.2]" />
+                <Building2 className="w-5 h-5 stroke-[2.2]" />
               </div>
               <div>
                 <span className="text-xl font-black text-white font-serif">RW</span>
