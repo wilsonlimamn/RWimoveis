@@ -82,10 +82,10 @@ CREATE INDEX IF NOT EXISTS idx_visits_property_id ON visits(property_id);
 CREATE INDEX IF NOT EXISTS idx_visits_timestamp ON visits(timestamp);
 
 -- SEED MÍNIMO OBRIGATÓRIO: CONTA ADMINISTRADOR COM HASH BCRYPT
--- Usuário: admin | Senha: password_hash com bcrypt ($2b$10$UR6dR0Kw2VIZowl3gIdpROei3I7bzixn3Jle.O0mEnApCoph0JD.u para a senha padrão '121212')
+-- Usuário: admin | Senha: password_hash com bcrypt ($2b$10$nzsoJEntWKYbgJX6IF4hdeFEkNs786nweNtm/8JnsaVJSgzA60BOm para a senha padrão '121212')
 INSERT INTO admin_users (id, username, password_hash, name, role)
-VALUES ('admin-1', 'admin', '$2b$10$UR6dR0Kw2VIZowl3gIdpROei3I7bzixn3Jle.O0mEnApCoph0JD.u', 'Administrador RWimóveis', 'admin')
-ON CONFLICT (username) DO NOTHING;
+VALUES ('admin-1', 'admin', '$2b$10$nzsoJEntWKYbgJX6IF4hdeFEkNs786nweNtm/8JnsaVJSgzA60BOm', 'Administrador RWimóveis', 'admin')
+ON CONFLICT (username) DO UPDATE SET password_hash = EXCLUDED.password_hash;
 
 -- OBSERVAÇÃO PARA PRODUÇÃO:
 -- Imóveis de demonstração foram separados no arquivo 'seed_demo.sql'.
