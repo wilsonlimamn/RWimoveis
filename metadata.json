@@ -1,0 +1,6 @@
+{
+  "name": "RWimóveis",
+  "description": "Plataforma imobiliária completa de alto padrão em Belém - PA (Umarizal, Nazaré, Batista Campos, Marco, Parque Verde), com URLs limpas para SEO local, CRM com funil Kanban e métricas em tempo real.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

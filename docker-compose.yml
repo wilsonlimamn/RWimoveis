@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  # Serviço do Banco de Dados PostgreSQL
+  postgres:
+    image: postgres:16-alpine
+    container_name: rwimoveis_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: rwimoveis
+      POSTGRES_USER: rwimoveis_user
+      POSTGRES_PASSWORD: rwimoveis_secret_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./schema.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rwimoveis_user -d rwimoveis"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Serviço da Aplicação Node.js (RWimóveis)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rwimoveis_app
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgres://rwimoveis_user:rwimoveis_secret_password@postgres:5432/rwimoveis
+      SQL_HOST: postgres
+      SQL_PORT: 5432
+      SQL_DB_NAME: rwimoveis
+      SQL_USER: rwimoveis_user
+      SQL_PASSWORD: rwimoveis_secret_password
+      ADMIN_USER: admin
+      ADMIN_PASSWORD: "121212"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+    driver: local
