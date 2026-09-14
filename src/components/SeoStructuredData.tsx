@@ -71,14 +71,14 @@ export const SeoStructuredData: React.FC<SeoStructuredDataProps> = ({
       legalName: 'RW Imóveis Selecionados Belém Ltda.',
       description: 'Imobiliária especialista em imóveis residenciais de alto padrão em Belém - PA (Umarizal, Batista Campos, Nazaré, Marco, Parque Verde).',
       url: baseUrl,
-      telephone: '+55-91-3210-9876',
+      telephone: '+55-91-98485-3113',
       priceRange: '$$$$',
       address: {
         '@type': 'PostalAddress',
-        streetAddress: 'Avenida Visconde de Souza Franco, 1150 - Edifício Metropolitan Tower',
-        addressLocality: 'Belém',
+        streetAddress: 'Ed. Nassar - Tv. 1º de Março, 96 - Sala: 205',
+        addressLocality: 'Campina, Belém',
         addressRegion: 'PA',
-        postalCode: '66055-000',
+        postalCode: '66010-080',
         addressCountry: 'BR'
       },
       geo: {

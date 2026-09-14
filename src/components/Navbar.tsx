@@ -70,13 +70,13 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Right Action buttons */}
           <div className="hidden sm:flex items-center gap-4">
             <a 
-              href="https://wa.me/5591981234567?text=Ol%C3%A1,%20gostaria%20de%20informa%C3%A7%C3%B5es%20sobre%20os%20im%C3%B3veis%20em%20Bel%C3%A9m%20da%20RWim%C3%B3veis"
+              href="https://wa.me/5591984853113?text=Ol%C3%A1,%20gostaria%20de%20informa%C3%A7%C3%B5es%20sobre%20os%20im%C3%B3veis%20em%20Bel%C3%A9m%20da%20RWim%C3%B3veis"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 text-xs font-semibold text-neutral-600 hover:text-red-600 transition-colors py-2 px-3 rounded-lg hover:bg-red-50/60"
             >
               <Phone className="w-4 h-4 text-red-600" />
-              <span>(91) 3210-9876</span>
+              <span>(91) 98485-3113</span>
             </a>
 
             {/* Favorites Counter indicator */}

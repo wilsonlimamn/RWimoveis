@@ -87,7 +87,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
     });
 
     const text = encodeURIComponent(`Olá! Gostaria de falar sobre o imóvel ${property.code} - ${property.title} anunciado na RWimóveis Belém.`);
-    window.open(`https://wa.me/5591981234567?text=${text}`, '_blank');
+    window.open(`https://wa.me/5591984853113?text=${text}`, '_blank');
   };
 
   return (

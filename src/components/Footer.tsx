@@ -52,15 +52,19 @@ export const Footer: React.FC<FooterProps> = ({ onOpenAdmin }) => {
             <div className="space-y-2.5 text-xs text-neutral-400">
               <div className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-red-500 shrink-0" />
-                <span>(91) 3210-9876 / (91) 98123-4567</span>
+                <a href="tel:+5591984853113" className="hover:text-red-400 transition-colors">
+                  (91) 98485-3113
+                </a>
               </div>
               <div className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-red-500 shrink-0" />
-                <span>contato@rwimoveis.com.br</span>
+                <a href="mailto:contato@rwimoveis.com.br" className="hover:text-red-400 transition-colors">
+                  contato@rwimoveis.com.br
+                </a>
               </div>
-              <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-red-500 shrink-0" />
-                <span>Av. Visconde de Souza Franco, 1150 - Umarizal, Belém/PA</span>
+              <div className="flex items-start gap-2">
+                <MapPin className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+                <span>Ed. Nassar - Tv. 1º de Março, 96 - Sala: 205 - Campina, Belém - PA, 66010-080</span>
               </div>
               <div className="flex items-center gap-2">
                 <Clock className="w-4 h-4 text-red-500 shrink-0" />

@@ -336,87 +336,28 @@ export function App() {
         />
       )}
 
-      {/* Bairros Nobres de Belém - PA (SEO & GEO Content Section) */}
-      {!showOnlyFavorites && (
-        <NeighborhoodsSection
-          selectedNeighborhood={selectedNeighborhood}
-          onSelectNeighborhood={(name) => {
-            setSelectedNeighborhood(prev => prev === name ? 'Todos' : name);
-            const section = document.getElementById('imoveis-catalogo');
-            if (section) section.scrollIntoView({ behavior: 'smooth' });
-          }}
-          onOpenGuide={(neighborhood) => setActiveGuideNeighborhood(neighborhood)}
-        />
-      )}
-
       {/* Main Catalog Section */}
-      <main id="imoveis-catalogo" className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 w-full">
+      <main id="imoveis-catalogo" className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 w-full">
         
-        {/* Section Header & Search Filters Bar */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8 pb-6 border-b border-neutral-200">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
+        {/* Header visible only when viewing favorites */}
+        {showOnlyFavorites && (
+          <div className="flex items-center justify-between gap-4 mb-6 pb-4 border-b border-neutral-200">
+            <div>
               <span className="text-xs font-bold uppercase tracking-wider text-red-600 bg-red-50 px-2.5 py-0.5 rounded-full border border-red-100">
-                {showOnlyFavorites ? 'Meus Imóveis Salvos' : 'Catálogo RWimóveis Belém'}
+                Meus Imóveis Salvos
               </span>
-              <span className="text-xs text-neutral-600 font-mono">
-                {filteredProperties.length} {filteredProperties.length === 1 ? 'imóvel' : 'imóveis'} em Belém - PA
-              </span>
-              {selectedNeighborhood !== 'Todos' && (
-                <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                  Filtro: {selectedNeighborhood}
-                </span>
-              )}
+              <h2 className="text-2xl font-black text-neutral-900 tracking-tight font-serif mt-1">
+                Imóveis Favoritos
+              </h2>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-black text-neutral-900 tracking-tight font-serif">
-              {showOnlyFavorites 
-                ? 'Imóveis Favoritos' 
-                : selectedNeighborhood !== 'Todos'
-                ? `Imóveis em ${selectedNeighborhood}, Belém`
-                : filters.purpose === 'Todos' 
-                ? 'Imóveis de Alto Padrão em Belém - PA' 
-                : `Imóveis para ${filters.purpose} em Belém`}
-            </h2>
+            <button
+              onClick={() => setShowOnlyFavorites(false)}
+              className="text-xs font-bold text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3 py-2 rounded-xl transition-colors cursor-pointer"
+            >
+              Voltar ao Catálogo
+            </button>
           </div>
-
-          {/* Quick Sorting & Purpose Filters */}
-          <div className="flex flex-wrap items-center gap-2.5">
-            {/* Filter by Purpose Buttons */}
-            <div className="inline-flex p-1 bg-neutral-100 rounded-xl border border-neutral-200 text-xs font-bold">
-              {(['Todos', 'Comprar', 'Alugar', 'Lançamentos'] as const).map(p => (
-                <button
-                  key={p}
-                  onClick={() => {
-                    setFilters(prev => ({ ...prev, purpose: p }));
-                    setShowOnlyFavorites(false);
-                  }}
-                  className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-                    filters.purpose === p && !showOnlyFavorites
-                      ? 'bg-red-600 text-white shadow-xs'
-                      : 'text-neutral-600 hover:text-neutral-900'
-                  }`}
-                >
-                  {p}
-                </button>
-              ))}
-            </div>
-
-            {/* Sort Dropdown */}
-            <div className="relative flex items-center bg-neutral-100 border border-neutral-200 rounded-xl px-3 py-1.5 text-xs font-bold text-neutral-700">
-              <ArrowUpDown className="w-3.5 h-3.5 mr-1.5 text-red-600 shrink-0" />
-              <select
-                value={filters.sortBy}
-                onChange={(e) => setFilters(prev => ({ ...prev, sortBy: e.target.value as any }))}
-                className="bg-transparent focus:outline-hidden cursor-pointer"
-              >
-                <option value="recent">Mais Recentes</option>
-                <option value="views">Mais Visitados</option>
-                <option value="price-asc">Menor Preço</option>
-                <option value="price-desc">Maior Preço</option>
-              </select>
-            </div>
-          </div>
-        </div>
+        )}
 
         {/* Detailed Filters Row */}
         <div className="bg-neutral-50 p-4 rounded-2xl border border-neutral-200 mb-8 flex flex-wrap items-center gap-3">
@@ -430,6 +371,20 @@ export function App() {
               onChange={(e) => setFilters(prev => ({ ...prev, searchQuery: e.target.value }))}
               className="w-full pl-9 pr-3 py-2 bg-white rounded-xl border border-neutral-300 text-xs font-medium focus:border-red-600 focus:ring-1 focus:ring-red-600"
             />
+          </div>
+
+          {/* Finalidade: Todos, Comprar, Alugar, Lançamentos */}
+          <div className="w-36">
+            <select
+              value={filters.purpose}
+              onChange={(e) => setFilters(prev => ({ ...prev, purpose: e.target.value as any }))}
+              className="w-full p-2 bg-white rounded-xl border border-neutral-300 text-xs font-semibold cursor-pointer"
+            >
+              <option value="Todos">Finalidade: Todas</option>
+              <option value="Comprar">Comprar</option>
+              <option value="Alugar">Alugar</option>
+              <option value="Lançamentos">Lançamentos</option>
+            </select>
           </div>
 
           {/* Neighborhood Select */}
@@ -473,6 +428,20 @@ export function App() {
               <option value="2">2+ quartos</option>
               <option value="3">3+ quartos</option>
               <option value="4">4+ quartos</option>
+            </select>
+          </div>
+
+          {/* Sort Dropdown */}
+          <div className="w-40">
+            <select
+              value={filters.sortBy}
+              onChange={(e) => setFilters(prev => ({ ...prev, sortBy: e.target.value as any }))}
+              className="w-full p-2 bg-white rounded-xl border border-neutral-300 text-xs font-semibold cursor-pointer"
+            >
+              <option value="recent">Mais Recentes</option>
+              <option value="views">Mais Visitados</option>
+              <option value="price-asc">Menor Preço</option>
+              <option value="price-desc">Maior Preço</option>
             </select>
           </div>
 
@@ -576,7 +545,7 @@ export function App() {
 
       {/* Floating Direct Contact WhatsApp Button with Belém DDD 91 */}
       <a
-        href="https://wa.me/5591981234567?text=Ol%C3%A1!%20Gostaria%20de%20informa%C3%A7%C3%B5es%20sobre%20os%20im%C3%B3veis%20de%20alto%20padr%C3%A3o%20em%20Bel%C3%A9m%20da%20RWim%C3%B3veis"
+        href="https://wa.me/5591984853113?text=Ol%C3%A1!%20Gostaria%20de%20informa%C3%A7%C3%B5es%20sobre%20os%20im%C3%B3veis%20de%20alto%20padr%C3%A3o%20em%20Bel%C3%A9m%20da%20RWim%C3%B3veis"
         target="_blank"
         rel="noopener noreferrer"
         className="fixed bottom-6 right-6 z-40 bg-emerald-600 hover:bg-emerald-700 text-white p-3.5 rounded-full shadow-2xl flex items-center gap-2.5 hover:scale-105 transition-all group"
@@ -584,7 +553,7 @@ export function App() {
       >
         <MessageCircle className="w-6 h-6 fill-white" />
         <span className="max-w-0 overflow-hidden whitespace-nowrap group-hover:max-w-xs transition-all duration-300 text-xs font-bold pr-1">
-          WhatsApp Belém (91)
+          WhatsApp (91) 98485-3113
         </span>
       </a>
 
