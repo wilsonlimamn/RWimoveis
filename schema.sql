@@ -82,7 +82,7 @@ CREATE INDEX IF NOT EXISTS idx_visits_timestamp ON visits(timestamp);
 
 -- SEED: CONTA ADMINISTRADOR (admin / 121212)
 INSERT INTO admin_users (id, username, password_hash, name, role)
-VALUES ('admin-1', 'admin', '121212', 'Administrador RWimóveis', 'admin')
+VALUES ('admin-1', 'admin', 'Rw2026!PainelSeguro', 'Administrador RWimóveis', 'admin')
 ON CONFLICT (username) DO NOTHING;
 
 -- SEED: 6 ANÚNCIOS REAIS DE TESTE NO BANCO DE DADOS
