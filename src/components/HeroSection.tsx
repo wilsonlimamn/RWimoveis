@@ -5,7 +5,7 @@ import { formatCurrency } from '../utils/formatters.ts';
 
 interface HeroSectionProps {
   featuredProperties: Property[];
-  onSearch: (params: { purpose: PropertyPurpose; type: string; query: string }) => void;
+  onSearch: (params: { purpose: PropertyPurpose | 'Todos'; type: string; query: string }) => void;
   onSelectProperty: (property: Property) => void;
 }
 
@@ -14,7 +14,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   onSearch,
   onSelectProperty
 }) => {
-  const [activePurpose, setActivePurpose] = useState<PropertyPurpose>('Comprar');
   const [selectedType, setSelectedType] = useState<string>('Tipo de Imóvel');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [currentHeroIndex, setCurrentHeroIndex] = useState<number>(0);
@@ -41,7 +40,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSearch({
-      purpose: activePurpose,
+      purpose: 'Todos',
       type: selectedType,
       query: searchQuery
     });
@@ -102,24 +101,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
 
       {/* Top Floating Search Bar */}
       <div className="relative z-10 w-full max-w-4xl mx-auto px-4 sm:px-6 pt-6 sm:pt-8">
-        {/* Search Tabs: Comprar, Alugar, Lançamentos */}
-        <div className="flex items-center gap-1.5 pl-3 mb-1">
-          {(['Comprar', 'Alugar', 'Lançamentos'] as PropertyPurpose[]).map((tab) => (
-            <button
-              key={tab}
-              type="button"
-              onClick={() => setActivePurpose(tab)}
-              className={`px-4 py-2 rounded-t-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                activePurpose === tab
-                  ? 'bg-white text-neutral-900 shadow-md border-t border-x border-neutral-200'
-                  : 'bg-white/80 hover:bg-white text-neutral-700 backdrop-blur-md'
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
-
         {/* Search Inputs Bar */}
         <form
           onSubmit={handleSearchSubmit}
